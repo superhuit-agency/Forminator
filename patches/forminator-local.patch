@@ -1,3 +1,58 @@
+diff --git a/forminator.php b/forminator.php
+index 1234567..abcdefg 100644
+--- a/forminator.php
++++ b/forminator.php
+@@ -157,6 +157,12 @@ class Forminator {
+ 			if ( is_admin() && FORMINATOR_PRO ) {
+ 				// Prevent updating PRO plugin to a free version.
+ 				add_action( 'site_transient_update_plugins', array( __CLASS__, 'remove_free_version_update' ) );
++			}
++
++			/**
++			 * Disable all updates for this plugin
++			 */
++			add_filter( 'site_transient_update_plugins', array( __CLASS__, 'disable_plugin_update' ) );
++			add_filter( 'auto_update_plugin', array( __CLASS__, 'disable_auto_update' ), 10, 2 );
+ 		}
+ 
+ 		/**
+@@ -176,6 +182,35 @@ class Forminator {
+ 			return $transient;
+ 		}
+ 
++		/**
++		 * Remove this plugin from the list of available updates
++		 *
++		 * @param object|bool $transient Transient object of available updates.
++		 * @return mixed
++		 */
++		public static function disable_plugin_update( $transient ) {
++			$plugin_slug = 'forminator/forminator.php';
++
++			if ( isset( $transient->response[ $plugin_slug ] ) ) {
++				unset( $transient->response[ $plugin_slug ] );
++			}
++
++			return $transient;
++		}
++
++		/**
++		 * Disable automatic updates for this plugin
++		 *
++		 * @param bool|null $update Whether to update.
++		 * @param object    $item   The update offer.
++		 * @return bool|null
++		 */
++		public static function disable_auto_update( $update, $item ) {
++			if ( isset( $item->slug ) && 'forminator' === $item->slug ) {
++				return false;
++			}
++			return $update;
++		}
++
+ 		/**
+ 		 * Add manage_forminator custom capability
+ 		 *
 diff --git a/library/abstracts/abstract-class-mail.php b/library/abstracts/abstract-class-mail.php
 index 33edecf..4b7bc0b 100644
 --- a/library/abstracts/abstract-class-mail.php
@@ -38,4 +93,3 @@ index 5d30089..e55def4 100644
  
  					// If notification is save_draft type, skip.
  					if (
-
